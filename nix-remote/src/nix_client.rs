@@ -2,7 +2,7 @@ pub use crate::serialize::{NixReadExt, NixWriteExt};
 use crate::{
     serialize::NixDeserializer,
     stderr::{self, Msg},
-    worker_op::{Resp, WorkerOp},
+    worker_op::Resp,
     NixString,
 };
 use anyhow::anyhow;
@@ -81,9 +81,12 @@ impl<R: Read, W: Write> NixDaemonClient<R, W> {
         Ok(())
     }
 
-    pub fn send_worker_op_to_daemon(&mut self, worker_op: &WorkerOp) -> Result<()> {
+    pub fn send_worker_op_to_daemon<T>(&mut self, op: &T) -> Result<()>
+    where
+        T: Serialize,
+    {
         self.tx_op_count += 1;
-        self.tx_to_daemon.inner.write_nix(&worker_op)?;
+        self.tx_to_daemon.inner.write_nix(&op)?;
         self.tx_to_daemon.inner.flush()?;
         Ok(())
     }
