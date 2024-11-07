@@ -101,7 +101,7 @@ impl<R: Read, W: Write> NixDaemonClient<R, W> {
         Ok(msg)
     }
 
-    pub fn read_build_response_from_daemon<T>(&mut self, resp: &Resp<T>) -> Result<T>
+    pub fn read_build_response_from_daemon_of_type<T>(&mut self) -> Result<T>
     where
         T: Debug + for<'a> serde::Deserialize<'a>,
     {
@@ -109,8 +109,15 @@ impl<R: Read, W: Write> NixDaemonClient<R, W> {
             read: &mut self.rx_from_daemon.inner,
         };
 
-        let reply: T = resp.ty(T::deserialize(&mut deser)?);
+        let reply: T = T::deserialize(&mut deser)?;
         Ok(reply)
+    }
+
+    pub fn read_build_response_from_daemon<T>(&mut self, _resp: &Resp<T>) -> Result<T>
+    where
+        T: Debug + for<'a> serde::Deserialize<'a>,
+    {
+        self.read_build_response_from_daemon_of_type::<T>()
     }
 
     pub fn reader(&mut self) -> &mut R {
