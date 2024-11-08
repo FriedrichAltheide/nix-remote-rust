@@ -1,7 +1,6 @@
 //! Worker ops from the Nix protocol.
 
 use serde::{Deserialize, Serialize};
-use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::ops::{Deref, DerefMut};
 use tagged_serde::TaggedSerde;
 
@@ -321,12 +320,14 @@ pub struct AddToStore {
 }
 
 #[cfg_attr(test, derive(arbitrary::Arbitrary))]
-#[derive(Debug, Clone, Copy, Serialize_repr, Deserialize_repr, PartialEq, Eq)]
-#[repr(u8)]
+#[derive(Debug, Clone, Copy, TaggedSerde, PartialEq, Eq)]
 pub enum BuildMode {
-    Normal = 0,
-    Repair = 1,
-    Check = 2,
+    #[tagged_serde = 0]
+    Normal,
+    #[tagged_serde = 1]
+    Repair,
+    #[tagged_serde = 2]
+    Check,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
@@ -358,25 +359,39 @@ pub struct QueryMissingResponse {
     pub nar_size: u64,
 }
 
-#[derive(Debug, Clone, Copy, Serialize_repr, Deserialize_repr, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, TaggedSerde, PartialEq, Eq)]
 #[cfg_attr(test, derive(arbitrary::Arbitrary))]
-#[repr(u64)]
 pub enum BuildStatus {
-    Built = 0,
-    Substituted = 1,
-    AlreadyValid = 2,
-    PermanentFailure = 3,
-    InputRejected = 4,
-    OutputRejected = 5,
-    TransientFailure = 6,
-    CachedFailure = 7,
-    TimedOut = 8,
-    MiscFailure = 9,
-    DependencyFailed = 10,
-    LogLimitExceeded = 11,
-    NotDeterministic = 12,
-    ResolvesToAlreadyValid = 13,
-    NoSubstituters = 14,
+    #[tagged_serde = 0]
+    Built,
+    #[tagged_serde = 1]
+    Substituted,
+    #[tagged_serde = 2]
+    AlreadyValid,
+    #[tagged_serde = 3]
+    PermanentFailure,
+    #[tagged_serde = 4]
+    InputRejected,
+    #[tagged_serde = 5]
+    OutputRejected,
+    #[tagged_serde = 6]
+    TransientFailure,
+    #[tagged_serde = 7]
+    CachedFailure,
+    #[tagged_serde = 8]
+    TimedOut,
+    #[tagged_serde = 9]
+    MiscFailure,
+    #[tagged_serde = 10]
+    DependencyFailed,
+    #[tagged_serde = 11]
+    LogLimitExceeded,
+    #[tagged_serde = 12]
+    NotDeterministic,
+    #[tagged_serde = 13]
+    ResolvesToAlreadyValid,
+    #[tagged_serde = 14]
+    NoSubstituters,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
