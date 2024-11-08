@@ -144,6 +144,66 @@ pub enum WorkerOp {
     BuildPathsWithResults(Plain<BuildPaths>, Resp<Vec<(DerivedPath, BuildResult)>>),
 }
 
+#[derive(Debug, TaggedSerde, PartialEq, Eq)]
+pub enum WorkerOp2 {
+    #[tagged_serde = 1]
+    IsValidPath(Plain<StorePath>),
+    #[tagged_serde = 6]
+    QueryReferrers(Plain<StorePath>),
+    #[tagged_serde = 7]
+    AddToStore(WithFramedSource<AddToStore>),
+    #[tagged_serde = 9]
+    BuildPaths(Plain<BuildPaths>),
+    #[tagged_serde = 10]
+    EnsurePath(Plain<StorePath>),
+    #[tagged_serde = 11]
+    AddTempRoot(Plain<StorePath>),
+    #[tagged_serde = 14]
+    FindRoots(Plain<()>),
+    #[tagged_serde = 19]
+    SetOptions(Plain<SetOptions>),
+    #[tagged_serde = 20]
+    CollectGarbage(Plain<CollectGarbage>),
+    #[tagged_serde = 23]
+    QueryAllValidPaths(Plain<()>),
+    #[tagged_serde = 26]
+    QueryPathInfo(Plain<StorePath>),
+    #[tagged_serde = 29]
+    QueryPathFromHashPart(Plain<NixString>),
+    #[tagged_serde = 31]
+    QueryValidPaths(Plain<QueryValidPaths>),
+    #[tagged_serde = 32]
+    QuerySubstitutablePaths(Plain<StorePathSet>),
+    #[tagged_serde = 33]
+    QueryValidDerivers(Plain<StorePath>),
+    #[tagged_serde = 34]
+    OptimiseStore(Plain<()>),
+    #[tagged_serde = 35]
+    VerifyStore(Plain<VerifyStore>),
+    #[tagged_serde = 36]
+    BuildDerivation(Plain<BuildDerivation>),
+    #[tagged_serde = 37]
+    AddSignatures(Plain<AddSignatures>),
+    #[tagged_serde = 38]
+    NarFromPath(Plain<StorePath>),
+    #[tagged_serde = 39]
+    AddToStoreNar(WithFramedSource<AddToStoreNar>),
+    #[tagged_serde = 40]
+    QueryMissing(Plain<QueryMissing>),
+    #[tagged_serde = 41]
+    QueryDerivationOutputMap(Plain<StorePath>),
+    #[tagged_serde = 42]
+    RegisterDrvOutput(Plain<Realisation>),
+    #[tagged_serde = 43]
+    QueryRealisation(Plain<NixString>),
+    #[tagged_serde = 44]
+    AddMultipleToStore(WithFramedSource<AddMultipleToStore>),
+    #[tagged_serde = 45]
+    AddBuildLog(WithFramedSource<AddBuildLog>),
+    #[tagged_serde = 46]
+    BuildPathsWithResults(Plain<BuildPaths>),
+}
+
 macro_rules! for_each_op {
     ($macro_name:ident !) => {
         $macro_name!(
@@ -185,6 +245,21 @@ impl StreamingRecv for WorkerOp {
             ($($name:ident),*) => {
                 match self {
                     $(WorkerOp::$name(op, _resp) => {
+                        return op.requires_streaming();
+                    },)*
+                }
+            };
+        }
+        for_each_op!(requires_streaming!);
+    }
+}
+
+impl StreamingRecv for WorkerOp2 {
+    fn requires_streaming(&self) -> bool {
+        macro_rules! requires_streaming {
+            ($($name:ident),*) => {
+                match self {
+                    $(WorkerOp2::$name(op) => {
                         return op.requires_streaming();
                     },)*
                 }
