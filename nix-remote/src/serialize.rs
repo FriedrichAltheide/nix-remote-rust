@@ -35,7 +35,7 @@
 
 use std::io::{Read, Write};
 
-use serde::{de, ser, Serialize};
+use serde::{de::{self, Visitor}, ser, Serialize};
 
 pub struct Tee<R, W> {
     read: R,
@@ -236,11 +236,11 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut NixDeserializer<'de> {
         Err(Error::WontImplement("i64"))
     }
 
-    fn deserialize_u8<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
+    fn deserialize_u8<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        Err(Error::WontImplement("u8"))
+        visitor.visit_u8(self.read_u64()? as u8)
     }
 
     fn deserialize_u16<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
@@ -594,8 +594,9 @@ impl<'se> serde::Serializer for &mut NixSerializer<'se> {
         Err(Error::WontImplement("i64"))
     }
 
-    fn serialize_u8(self, _v: u8) -> Result<Self::Ok, Self::Error> {
-        Err(Error::WontImplement("u8"))
+    fn serialize_u8(self, v: u8) -> Result<Self::Ok, Self::Error> {
+        let v_as64: u64 = v.into();
+        Ok(self.write.write_all(&v_as64.to_le_bytes())?)
     }
 
     fn serialize_u16(self, _v: u16) -> Result<Self::Ok, Self::Error> {
