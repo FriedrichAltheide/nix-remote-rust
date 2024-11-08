@@ -323,11 +323,11 @@ pub struct AddToStore {
 #[derive(Debug, Clone, Copy, TaggedSerde, PartialEq, Eq)]
 pub enum BuildMode {
     #[tagged_serde = 0]
-    Normal,
+    Normal(),
     #[tagged_serde = 1]
-    Repair,
+    Repair(),
     #[tagged_serde = 2]
-    Check,
+    Check(),
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
